@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { AnalysisResult } from '../types'
+import { useToast } from '../context/ToastContext'
+import { generateShareableUrl } from '../utils/urlSharing'
 
 interface LogAnalysisProps {
   analysis: AnalysisResult
@@ -9,16 +11,28 @@ interface LogAnalysisProps {
 const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
   const [expandedIssue, setExpandedIssue] = useState<number | null>(null)
   const [showFullLog, setShowFullLog] = useState(false)
+  const { showToast } = useToast()
 
   const toggleIssue = (index: number) => {
     setExpandedIssue(expandedIssue === index ? null : index)
   }
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string, successMessage = 'Copied to clipboard!') => {
     try {
       await navigator.clipboard.writeText(text)
+      showToast(successMessage, 'success')
     } catch (err) {
       console.error('Failed to copy to clipboard:', err)
+      showToast('Failed to copy to clipboard', 'error')
+    }
+  }
+
+  const handleShareAnalysis = async () => {
+    try {
+      const shareUrl = generateShareableUrl(originalLog, analysis)
+      await copyToClipboard(shareUrl, 'Share link copied to clipboard!')
+    } catch (err) {
+      showToast('Failed to create share link', 'error')
     }
   }
 
@@ -124,7 +138,10 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
                     <p className="text-gray-900">{issue.suggestion}</p>
                   </div>
                   <button
-                    onClick={() => copyToClipboard(`Line ${issue.line}: ${issue.content}\n\nExplanation: ${issue.explanation}\n\nSuggested Fix: ${issue.suggestion}`)}
+                    onClick={() => copyToClipboard(
+                      `Line ${issue.line}: ${issue.content}\n\nExplanation: ${issue.explanation}\n\nSuggested Fix: ${issue.suggestion}`,
+                      'Issue details copied!'
+                    )}
                     className="btn btn-secondary"
                     style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                   >
@@ -149,7 +166,7 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
               {showFullLog ? 'Show Less' : 'Show Full Log'}
             </button>
             <button
-              onClick={() => copyToClipboard(originalLog)}
+              onClick={() => copyToClipboard(originalLog, 'Log copied to clipboard!')}
               className="btn btn-secondary"
               style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
             >
@@ -211,8 +228,15 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
       </div>
 
       <div className="card">
-        <h2 className="text-xl font-bold mb-4">Export Analysis</h2>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <h2 className="text-xl font-bold mb-4">Export & Share Analysis</h2>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleShareAnalysis}
+            className="btn btn-primary"
+            style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+          >
+            🔗 Share Analysis
+          </button>
           <button
             onClick={() => {
               const summary = `# Console Log Analysis Report
@@ -238,7 +262,7 @@ ${analysis.criticalIssues.map((issue, i) =>
               ).join('')}## Processing Time
 ${analysis.processingTime}ms`
               
-              copyToClipboard(summary)
+              copyToClipboard(summary, 'Markdown report copied!')
             }}
             className="btn btn-primary"
           >
@@ -262,7 +286,7 @@ Confidence: ${issue.confidence}%
 `
               ).join('')}Processing Time: ${analysis.processingTime}ms`
               
-              copyToClipboard(summary)
+              copyToClipboard(summary, 'Text report copied!')
             }}
             className="btn btn-secondary"
           >

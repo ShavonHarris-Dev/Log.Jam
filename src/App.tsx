@@ -1,13 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FileUpload from './components/FileUpload'
 import LogAnalysis from './components/LogAnalysis'
 import type { AnalysisResult } from './types'
+import { AIAnalyzer } from './services/aiAnalyzer'
+import { ToastProvider, useToast } from './context/ToastContext'
+import { getSharedDataFromUrl, clearSharedDataFromUrl } from './utils/urlSharing'
 
-function App() {
+function AppContent() {
   const [logContent, setLogContent] = useState<string>('')
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { showToast } = useToast()
+
+  // Check for shared data on component mount
+  useEffect(() => {
+    const sharedData = getSharedDataFromUrl()
+    if (sharedData) {
+      setLogContent(sharedData.logContent)
+      setAnalysis(sharedData.analysis)
+      showToast('Shared analysis loaded!', 'info')
+      
+      // Clean up URL
+      clearSharedDataFromUrl()
+    }
+  }, [showToast])
 
   const handleLogUpload = (content: string) => {
     setLogContent(content)
@@ -22,34 +39,23 @@ function App() {
     setError(null)
 
     try {
-      // TODO: Replace with actual AI API call
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
-      
-      // Mock analysis result for now
-      const mockAnalysis: AnalysisResult = {
-        criticalIssues: [
-          {
-            line: 15,
-            content: "TypeError: Cannot read property 'id' of undefined",
-            explanation: "Attempting to access the 'id' property on an undefined object, likely due to an API response not containing expected data.",
-            suggestion: "Add null/undefined checks before accessing object properties. Use optional chaining (?.) or verify API response structure.",
-            confidence: 95
-          },
-          {
-            line: 23,
-            content: "Failed to load resource: the server responded with a status of 404 (Not Found)",
-            explanation: "A network request is failing because the requested resource doesn't exist on the server.",
-            suggestion: "Check the API endpoint URL and ensure the resource exists. Verify the request path and server configuration.",
-            confidence: 90
-          }
-        ],
-        summary: "Found 2 critical issues: 1 JavaScript runtime error and 1 network failure. The TypeError suggests missing data validation, while the 404 error indicates a broken API endpoint.",
-        processingTime: 1850
-      }
-
-      setAnalysis(mockAnalysis)
+      const analyzer = new AIAnalyzer()
+      const result = await analyzer.analyzeLog(logContent)
+      setAnalysis(result)
     } catch (err) {
-      setError('Failed to analyze log. Please try again.')
+      console.error('Analysis failed:', err)
+      
+      if (err instanceof Error) {
+        if (err.message.includes('API key')) {
+          setError('OpenAI API key not configured. Please add your API key to the .env.local file.')
+        } else if (err.message.includes('quota') || err.message.includes('billing')) {
+          setError('OpenAI API quota exceeded. Please check your billing settings.')
+        } else {
+          setError(`Analysis failed: ${err.message}`)
+        }
+      } else {
+        setError('Failed to analyze log. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -57,13 +63,27 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+      <div className="container" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
         <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            🤖 AI Console Log Analyzer
+          <h1 style={{ 
+            fontSize: 'clamp(2.5rem, 8vw, 4.5rem)', 
+            fontWeight: '800', 
+            lineHeight: '1.1',
+            marginBottom: '2rem',
+            color: '#ffffff'
+          }}>
+            One click log analysis devs <span style={{
+              color: '#10b981'
+            }}>love</span>
           </h1>
-          <p className="text-xl text-gray-600" style={{ maxWidth: '48rem', margin: '0 auto' }}>
-            Upload your console logs and get instant AI-powered insights to debug faster
+          <p style={{ 
+            fontSize: '1.25rem', 
+            color: '#f1f5f9', 
+            maxWidth: '48rem', 
+            margin: '0 auto 3rem',
+            lineHeight: '1.6'
+          }}>
+            Upload your console logs and get instant AI-powered insights to debug 80% faster
           </p>
         </header>
 
@@ -90,6 +110,14 @@ function App() {
         </div>
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   )
 }
 

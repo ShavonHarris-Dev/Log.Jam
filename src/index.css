@@ -10,9 +10,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
-  color: #1a202c;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #f8fafc;
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 .container {
@@ -25,64 +26,100 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn:focus {
+  outline: 3px solid #fbbf24;
+  outline-offset: 2px;
 }
 
 .btn-primary {
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
 }
 
 .btn-primary:disabled {
-  background-color: #9ca3af;
+  background: #374151;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-secondary {
-  background-color: #6b7280;
-  color: white;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
 }
 
 .btn-secondary:hover {
-  background-color: #4b5563;
+  background: #e5e7eb;
+  color: #1f2937;
+  transform: translateY(-1px);
+  border-color: #9ca3af;
 }
 
 .card {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  color: #1f2937;
 }
 
 .upload-area {
-  border: 2px dashed #d1d5db;
-  border-radius: 0.75rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 16px;
   padding: 3rem 2rem;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.upload-area::before {
+  content: "📁 Click or drag files here";
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 0.75rem;
+  color: #374151;
+  font-weight: 600;
 }
 
 .upload-area:hover {
-  border-color: #3b82f6;
-  background-color: #f8fafc;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  transform: scale(1.01);
+}
+
+.upload-area:focus {
+  outline: 3px solid #fbbf24;
+  outline-offset: 2px;
 }
 
 .upload-area.dragover {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.25);
+  transform: scale(1.01);
 }
 
 .text-center {
@@ -90,23 +127,23 @@ body {
 }
 
 .text-gray-600 {
-  color: #6b7280;
+  color: #cbd5e1;
 }
 
 .text-gray-900 {
-  color: #111827;
+  color: #1f2937;
 }
 
 .text-red-800 {
-  color: #991b1b;
+  color: #dc2626;
 }
 
 .bg-red-50 {
-  background-color: #fef2f2;
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 .border-red-200 {
-  border-color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .mb-4 {

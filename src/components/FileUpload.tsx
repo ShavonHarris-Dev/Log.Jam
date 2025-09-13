@@ -1,4 +1,5 @@
 import { useState, useRef, DragEvent, ChangeEvent } from 'react'
+import { sampleLogs } from '../data/sampleLogs'
 
 interface FileUploadProps {
   onLogUpload: (content: string) => void
@@ -73,9 +74,17 @@ const FileUpload: React.FC<FileUploadProps> = ({
     fileInputRef.current?.click()
   }
 
+  const handleSampleLog = (sampleKey: keyof typeof sampleLogs) => {
+    const sample = sampleLogs[sampleKey]
+    setTextContent(sample.content)
+    onLogUpload(sample.content)
+  }
+
   return (
     <div className="card">
-      <h2 className="text-xl font-bold mb-6">Upload Console Log</h2>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '2rem', color: '#1f2937' }}>
+        Upload Console Log
+      </h2>
       
       {/* File Upload Area */}
       <div
@@ -84,6 +93,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleUploadClick}
+        tabIndex={0}
+        role="button"
+        aria-label="Click to upload file or drag and drop files here"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleUploadClick()
+          }
+        }}
       >
         <div>
           <svg 
@@ -102,8 +120,12 @@ const FileUpload: React.FC<FileUploadProps> = ({
             <line x1="16" y1="17" x2="8" y2="17"></line>
             <polyline points="10,9 9,9 8,9"></polyline>
           </svg>
-          <p className="text-xl mb-2">Drop your log file here or click to browse</p>
-          <p className="text-gray-600">Supports .log, .txt files or paste content below</p>
+          <p style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#1f2937', fontWeight: '600' }}>
+            Drop your log file here or click to browse
+          </p>
+          <p style={{ color: '#4b5563' }}>
+            Supports .log, .txt files or paste content below
+          </p>
         </div>
       </div>
 
@@ -117,7 +139,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
       {/* Text Area */}
       <div className="mt-6">
-        <label htmlFor="log-content" className="block text-sm font-medium mb-2">
+        <label htmlFor="log-content" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem', color: '#374151' }}>
           Or paste your console log content:
         </label>
         <textarea
@@ -129,16 +151,58 @@ const FileUpload: React.FC<FileUploadProps> = ({
           rows={10}
           style={{
             width: '100%',
-            padding: '0.75rem',
-            border: '1px solid #d1d5db',
-            borderRadius: '0.5rem',
+            padding: '1rem',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
             fontSize: '0.875rem',
             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
             resize: 'vertical',
-            minHeight: '200px'
+            minHeight: '200px',
+            backgroundColor: '#f9fafb',
+            color: '#374151',
+            transition: 'all 0.2s ease'
+          }}
+          onFocus={(e) => {
+            e.target.style.outline = '3px solid #fbbf24'
+            e.target.style.outlineOffset = '2px'
+          }}
+          onBlur={(e) => {
+            e.target.style.outline = 'none'
           }}
         />
       </div>
+
+      {/* Sample Logs */}
+      {!hasContent && (
+        <div className="mt-6">
+          <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', color: '#374151' }}>
+            Or try a sample log:
+          </h3>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => handleSampleLog('reactError')}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+            >
+              React Errors
+            </button>
+            <button
+              onClick={() => handleSampleLog('networkError')}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+            >
+              Network Issues
+            </button>
+            <button
+              onClick={() => handleSampleLog('javascriptErrors')}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+            >
+              JS Runtime Errors
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="mt-6" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
