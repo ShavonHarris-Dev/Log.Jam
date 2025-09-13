@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AnalysisResult } from '../App'
+import type { AnalysisResult } from '../types'
 
 interface LogAnalysisProps {
   analysis: AnalysisResult
@@ -17,35 +17,32 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      // You could add a toast notification here
     } catch (err) {
       console.error('Failed to copy to clipboard:', err)
     }
   }
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 90) return '#10b981' // green
-    if (confidence >= 70) return '#f59e0b' // amber
-    return '#ef4444' // red
+    if (confidence >= 90) return '#10b981'
+    if (confidence >= 70) return '#f59e0b'
+    return '#ef4444'
   }
 
   const logLines = originalLog.split('\n')
 
   return (
     <div className="mt-8">
-      {/* Summary */}
       <div className="card">
-        <h2 className="text-xl font-bold mb-4">🔍 Analysis Summary</h2>
+        <h2 className="text-xl font-bold mb-4">Analysis Summary</h2>
         <p className="text-gray-900 mb-4">{analysis.summary}</p>
         <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#6b7280' }}>
-          <span>⚠️ {analysis.criticalIssues.length} critical issues found</span>
-          <span>⏱️ Analysis completed in {analysis.processingTime}ms</span>
+          <span>{analysis.criticalIssues.length} critical issues found</span>
+          <span>Analysis completed in {analysis.processingTime}ms</span>
         </div>
       </div>
 
-      {/* Critical Issues */}
       <div className="card">
-        <h2 className="text-xl font-bold mb-6">🚨 Critical Issues</h2>
+        <h2 className="text-xl font-bold mb-6">Critical Issues</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {analysis.criticalIssues.map((issue, index) => (
             <div 
@@ -119,11 +116,11 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
               {expandedIssue === index && (
                 <div style={{ padding: '1rem' }}>
                   <div className="mb-4">
-                    <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>💡 Explanation</h4>
+                    <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Explanation</h4>
                     <p className="text-gray-900">{issue.explanation}</p>
                   </div>
                   <div className="mb-4">
-                    <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>🔧 Suggested Fix</h4>
+                    <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Suggested Fix</h4>
                     <p className="text-gray-900">{issue.suggestion}</p>
                   </div>
                   <button
@@ -131,7 +128,7 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
                     className="btn btn-secondary"
                     style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                   >
-                    📋 Copy Issue Details
+                    Copy Issue Details
                   </button>
                 </div>
               )}
@@ -140,10 +137,9 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
         </div>
       </div>
 
-      {/* Original Log with Highlighting */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 className="text-xl font-bold">📄 Original Log</h2>
+          <h2 className="text-xl font-bold">Original Log</h2>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               onClick={() => setShowFullLog(!showFullLog)}
@@ -157,7 +153,7 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
               className="btn btn-secondary"
               style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
             >
-              📋 Copy Log
+              Copy Log
             </button>
           </div>
         </div>
@@ -214,33 +210,63 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
         </div>
       </div>
 
-      {/* Export Options */}
       <div className="card">
-        <h2 className="text-xl font-bold mb-4">📤 Export Analysis</h2>
+        <h2 className="text-xl font-bold mb-4">Export Analysis</h2>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button
             onClick={() => {
-              const summary = `# Console Log Analysis Report\n\n## Summary\n${analysis.summary}\n\n## Critical Issues Found: ${analysis.criticalIssues.length}\n\n${analysis.criticalIssues.map((issue, i) => 
-                `### Issue ${i + 1} (Line ${issue.line})\n**Error:** \`${issue.content}\`\n\n**Explanation:** ${issue.explanation}\n\n**Suggested Fix:** ${issue.suggestion}\n\n**Confidence:** ${issue.confidence}%\n\n---\n\n`
-              ).join('')}## Processing Time\n${analysis.processingTime}ms`
+              const summary = `# Console Log Analysis Report
+
+## Summary
+${analysis.summary}
+
+## Critical Issues Found: ${analysis.criticalIssues.length}
+
+${analysis.criticalIssues.map((issue, i) => 
+                `### Issue ${i + 1} (Line ${issue.line})
+**Error:** \`${issue.content}\`
+
+**Explanation:** ${issue.explanation}
+
+**Suggested Fix:** ${issue.suggestion}
+
+**Confidence:** ${issue.confidence}%
+
+---
+
+`
+              ).join('')}## Processing Time
+${analysis.processingTime}ms`
               
               copyToClipboard(summary)
             }}
             className="btn btn-primary"
           >
-            📋 Copy as Markdown
+            Copy as Markdown
           </button>
           <button
             onClick={() => {
-              const summary = `Console Log Analysis Report\n\nSummary: ${analysis.summary}\n\nCritical Issues Found: ${analysis.criticalIssues.length}\n\n${analysis.criticalIssues.map((issue, i) => 
-                `Issue ${i + 1} (Line ${issue.line}):\nError: ${issue.content}\nExplanation: ${issue.explanation}\nSuggested Fix: ${issue.suggestion}\nConfidence: ${issue.confidence}%\n\n`
+              const summary = `Console Log Analysis Report
+
+Summary: ${analysis.summary}
+
+Critical Issues Found: ${analysis.criticalIssues.length}
+
+${analysis.criticalIssues.map((issue, i) => 
+                `Issue ${i + 1} (Line ${issue.line}):
+Error: ${issue.content}
+Explanation: ${issue.explanation}
+Suggested Fix: ${issue.suggestion}
+Confidence: ${issue.confidence}%
+
+`
               ).join('')}Processing Time: ${analysis.processingTime}ms`
               
               copyToClipboard(summary)
             }}
             className="btn btn-secondary"
           >
-            📄 Copy as Text
+            Copy as Text
           </button>
         </div>
       </div>

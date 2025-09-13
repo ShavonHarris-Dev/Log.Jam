@@ -1,18 +1,7 @@
 import { useState } from 'react'
 import FileUpload from './components/FileUpload'
 import LogAnalysis from './components/LogAnalysis'
-
-export interface AnalysisResult {
-  criticalIssues: Array<{
-    line: number
-    content: string
-    explanation: string
-    suggestion: string
-    confidence: number
-  }>
-  summary: string
-  processingTime: number
-}
+import type { AnalysisResult } from './types'
 
 function App() {
   const [logContent, setLogContent] = useState<string>('')
