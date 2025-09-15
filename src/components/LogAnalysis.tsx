@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { AnalysisResult } from '../types'
 import { useToast } from '../context/ToastContext'
 import { generateShareableUrl } from '../utils/urlSharing'
+import SyntaxHighlightedLog from './SyntaxHighlightedLog'
+import ErrorNavigation from './ErrorNavigation'
 
 interface LogAnalysisProps {
   analysis: AnalysisResult
@@ -11,7 +13,9 @@ interface LogAnalysisProps {
 const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
   const [expandedIssue, setExpandedIssue] = useState<number | null>(null)
   const [showFullLog, setShowFullLog] = useState(false)
+  const [currentErrorIndex, setCurrentErrorIndex] = useState<number>(0)
   const { showToast } = useToast()
+  const logRef = useRef<HTMLDivElement>(null)
 
   const toggleIssue = (index: number) => {
     setExpandedIssue(expandedIssue === index ? null : index)
@@ -42,7 +46,26 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
     return '#ef4444'
   }
 
-  const logLines = originalLog.split('\n')
+  const handleErrorNavigate = (index: number) => {
+    setCurrentErrorIndex(index)
+    setExpandedIssue(index)
+  }
+
+  const handleJumpToLine = (lineNumber: number) => {
+    if (logRef.current) {
+      const lineElement = logRef.current.querySelector(`#line-${lineNumber}`) as HTMLElement
+      if (lineElement) {
+        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+        // Add a brief highlight effect
+        lineElement.style.transition = 'box-shadow 0.3s ease'
+        lineElement.style.boxShadow = '0 0 0 3px #3b82f6'
+        setTimeout(() => {
+          lineElement.style.boxShadow = ''
+        }, 1000)
+      }
+    }
+  }
 
   return (
     <div className="mt-8">
@@ -156,7 +179,7 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
 
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 className="text-xl font-bold">Original Log</h2>
+          <h2 className="text-xl font-bold">Enhanced Log View</h2>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               onClick={() => setShowFullLog(!showFullLog)}
@@ -174,56 +197,22 @@ const LogAnalysis: React.FC<LogAnalysisProps> = ({ analysis, originalLog }) => {
             </button>
           </div>
         </div>
-        
-        <div
-          style={{
-            backgroundColor: '#1f2937',
-            color: '#f9fafb',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            fontSize: '0.875rem',
-            fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-            maxHeight: showFullLog ? 'none' : '400px',
-            overflow: 'auto',
-            lineHeight: '1.5'
-          }}
-        >
-          {logLines.slice(0, showFullLog ? logLines.length : 20).map((line, index) => {
-            const lineNumber = index + 1
-            const isHighlighted = analysis.criticalIssues.some(issue => issue.line === lineNumber)
-            
-            return (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  backgroundColor: isHighlighted ? '#dc262620' : 'transparent',
-                  padding: '0.125rem 0.25rem',
-                  margin: '0 -0.25rem'
-                }}
-              >
-                <span
-                  style={{
-                    color: '#6b7280',
-                    marginRight: '1rem',
-                    minWidth: '3rem',
-                    textAlign: 'right',
-                    userSelect: 'none'
-                  }}
-                >
-                  {lineNumber}
-                </span>
-                <span style={{ color: isHighlighted ? '#fca5a5' : '#f9fafb' }}>
-                  {line || ' '}
-                </span>
-              </div>
-            )
-          })}
-          {!showFullLog && logLines.length > 20 && (
-            <div style={{ textAlign: 'center', padding: '1rem', color: '#6b7280' }}>
-              ... {logLines.length - 20} more lines (click "Show Full Log" to see all)
-            </div>
-          )}
+
+        <ErrorNavigation
+          analysis={analysis}
+          currentIndex={currentErrorIndex}
+          onNavigate={handleErrorNavigate}
+          onJumpToLine={handleJumpToLine}
+        />
+
+        <div ref={logRef}>
+          <SyntaxHighlightedLog
+            logContent={originalLog}
+            analysis={analysis}
+            showFullLog={showFullLog}
+            currentErrorIndex={currentErrorIndex}
+            onErrorNavigate={handleErrorNavigate}
+          />
         </div>
       </div>
 
